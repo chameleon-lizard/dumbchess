@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dumb Chess</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="">
+    <div id="rules-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Dumb Chess Rules & Setup</h2>
+            <p>Welcome! Adjust settings and start the game.</p>
+            <div class="slider-container"> <label for="rows-slider">Rows: <output id="rows-output">6</output></label>
+                <input type="range" id="rows-slider" name="rows" min="6" max="10" value="6">
+            </div>
+            <div class="slider-container"> <label for="cols-slider">Columns: <output id="cols-output">4</output></label>
+                <input type="range" id="cols-slider" name="cols" min="4" max="8" value="4">
+                <p class="text-xs mt-1">(Min 4 cols required)</p>
+            </div>
+            <div class="slider-container"> <label for="depth-slider">AI Depth: <output
+                        id="depth-output">2</output></label> <input type="range" id="depth-slider" name="depth" min="1"
+                    max="8" value="2">
+                <p class="text-xs mt-1">(Higher depth = stronger AI, but slower moves)</p>
+            </div>
+            <p><strong>Objective:</strong> Capture the opponent's King (or Kings :P) (♚ or ♔).</p>
+            <p><strong>Setup:</strong> Place your pieces, alternating with the AI.</p>
+            <p><strong>Dark Squares:</strong> Block Rook/Bishop/Queen movement.</p> <button id="play-button"
+                class="modal-action-button">Play First Game</button>
+        </div>
+    </div>
+    <div id="shop-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2>Shop & Next Game Setup</h2>
+            <p>Game Over! Spend your points or adjust settings for the next round.</p>
+            <div class="shop-section">
+                <h3>Your Score: <span id="shop-score">0</span></h3>
+            </div>
+            <div class="shop-section">
+                <h3>Buy Pieces</h3>
+                <div id="shop-items-buy" class="shop-items"> </div>
+            </div>
+            <div class="shop-section">
+                <h3>Your Current Pieces</h3>
+                <div id="player-inventory-display"> </div>
+            </div>
+            <div class="shop-section">
+                <h3>Next Board Size</h3>
+                <div class="slider-container"> <label for="shop-rows-slider">Rows: <output
+                            id="shop-rows-output">6</output></label>
+                    <input type="range" id="shop-rows-slider" name="rows" min="6" max="10" value="6">
+                </div>
+                <div class="slider-container"> <label for="shop-cols-slider">Columns: <output
+                            id="shop-cols-output">4</output></label> <input type="range" id="shop-cols-slider"
+                        name="cols" min="4" max="8" value="4">
+                    <p class="text-xs mt-1">(Min 4 cols required)</p>
+                </div>
+            </div> <button id="start-next-game-button" class="modal-action-button">Start Next Game</button>
+        </div>
+    </div>
+    <div class="game-container" style="visibility: hidden;">
+        <div class="main-area">
+            <div class="board-container">
+                <div id="board" class="board shadow-lg"></div>
+            </div>
+            <div class="sidebar">
+                <div id="turn-indicator-wrapper">
+                    <div id="turn-indicator" title="Current Turn"></div> <span id="turn-label"
+                        class="text-sm font-medium area-label"></span>
+                </div>
+                <div class="sidebar-controls"> <button id="theme-toggle" class="control-button" title="Toggle Theme">
+                    </button> <button id="restart-button" class="control-button" title="Restart Game"> <svg
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                        </svg> </button> </div>
+                <div id="score-display">Score: 0</div>
+                <div id="captured-by-white-area" style="display: none;">
+                    <div class="text-sm font-medium area-label">Captured by You:</div>
+                    <div id="captured-by-white" class="captured-area"></div>
+                </div>
+                <div id="captured-by-black-area" style="display: none;">
+                    <div class="text-sm font-medium area-label">Captured by AI:</div>
+                    <div id="captured-by-black" class="captured-area"></div>
+                </div>
+                <div id="white-hand-area" class="w-full" style="display: none;">
+                    <div class="text-sm font-medium area-label text-center">Your Pieces to Place:</div>
+                    <div id="white-hand" class="piece-hand"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="message-box" class="message-box"></div>
+    <script src="game.js"></script>
+
+</body>
+
+</html>
