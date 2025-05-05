@@ -30,6 +30,12 @@ const themeToggleButton = document.getElementById('theme-toggle');
 const restartButton = document.getElementById('restart-button');
 const messageBox = document.getElementById('message-box');
 const scoreDisplay = document.getElementById('score-display');
+
+// --- Pawn Upgrade Modal ---
+const upgradeModal = document.getElementById('upgrade-modal');
+const upgradeButtons = {
+    rook: document.getElementById('upgrade-to-rook'), queen: document.getElementById('upgrade-to-queen'), bishop: document.getElementById('upgrade-to-bishop'), knight: document.getElementById('upgrade-to-knight'),
+};
 let boardRows = 6; let boardCols = 4;
 
 const sunIcon = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg>`;
@@ -182,10 +188,36 @@ function getAllLegalMoves(player, currentBoardState, currentCellColors) { const 
 function performMove(move, targetBoardState) { const from = move.from; const to = move.to; const pieceToMove = targetBoardState[from.row][from.col]; const capturedPiece = targetBoardState[to.row][to.col]; targetBoardState[to.row][to.col] = pieceToMove; targetBoardState[from.row][from.col] = EMPTY; return capturedPiece; }
 function simulateMove(move, currentBoardState) { const tempBoardState = currentBoardState.map(row => [...row]); performMove(move, tempBoardState); return tempBoardState; }
 function countKings(player, currentBoardState) { let kingCount = 0; const kingChar = (player === 'white') ? 'K' : 'k'; for (let r = 0; r < boardRows; r++) { for (let c = 0; c < boardCols; c++) { if (currentBoardState[r][c] === kingChar) { kingCount++; } } } return kingCount; }
+function closeUpgradeModal() { upgradeModal.style.display = 'none'; }
+
+
+// --- Pawn Upgrade Modal ---
+function openUpgradeModal(row, col) {
+    upgradeModal.style.display = 'flex';
+    upgradeModal.dataset.row = row;
+    upgradeModal.dataset.col = col;
+}
+
+Object.keys(upgradeButtons).forEach(upgradeType => {
+    upgradeButtons[upgradeType].addEventListener('click', () => {
+        const row = parseInt(upgradeModal.dataset.row);
+        const col = parseInt(upgradeModal.dataset.col);
+        const newPiece = upgradeType.charAt(0).toUpperCase();
+        boardState[row][col] = newPiece;
+        closeUpgradeModal();
+        currentPlayer = 'black'; isPlayerTurn = false; updateStatus(); renderBoard(); renderHands(); setTimeout(makeAIMove, AI_DELAY);
+    });
+});
 
 
 // --- Player/AI Move Execution ---
-function makePlayerMove(fromRow, fromCol, toRow, toCol) { const pieceToMove = boardState[fromRow][fromCol]; const move = { from: { row: fromRow, col: fromCol }, to: { row: toRow, col: toCol }, piece: pieceToMove }; const captured = performMove(move, boardState); if (captured) { capturedByWhite.push(captured); if (captured.toLowerCase() === 'k' && countKings('black', boardState) === 0) { showGameOver('white'); return; } } selectedSquare = null; validMoves = []; currentPlayer = 'black'; isPlayerTurn = false; updateStatus(); renderBoard(); renderHands(); setTimeout(makeAIMove, AI_DELAY); }
+function makePlayerMove(fromRow, fromCol, toRow, toCol) { const pieceToMove = boardState[fromRow][fromCol]; const move = { from: { row: fromRow, col: fromCol }, to: { row: toRow, col: toCol }, piece: pieceToMove }; const captured = performMove(move, boardState); if (captured) { capturedByWhite.push(captured); if (captured.toLowerCase() === 'k' && countKings('black', boardState) === 0) { showGameOver('white'); return; } }
+    boardState[toRow][toCol] = pieceToMove; // Move the piece
+    boardState[fromRow][fromCol] = EMPTY; // Clear the original square
+    selectedSquare = null; validMoves = [];
+    if ((pieceToMove === 'P' && toRow === 0) || (pieceToMove === 'p' && toRow === boardRows - 1)) { openUpgradeModal(toRow, toCol); } else { currentPlayer = 'black'; isPlayerTurn = false; updateStatus(); renderBoard(); renderHands(); setTimeout(makeAIMove, AI_DELAY); }
+}
+
 function makeAIMove() { if (gameState !== 'playing') return; console.log("AI thinking..."); const aiMove = getBestAIMove(aiSearchDepth); if (aiMove) { console.log("AI Move:", aiMove); const captured = performMove(aiMove, boardState); if (captured) { capturedByBlack.push(captured); if (captured.toLowerCase() === 'k' && countKings('white', boardState) === 0) { showGameOver('black'); return; } } showMessage(`AI moved ${PIECES[aiMove.piece]} from (${aiMove.from.row},${aiMove.from.col}) to (${aiMove.to.row},${aiMove.to.col})` + (captured ? ` capturing ${PIECES[captured]}` : '')); } else { const playerMoves = getAllLegalMoves('white', boardState, cellColors); if (playerMoves.length === 0) { showMessage("Stalemate! It's a draw."); playerScore += 350; aiScore += 150; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } else { showMessage("AI has no moves! You win?"); playerScore += 500; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } } if (gameState !== 'game-over') { currentPlayer = 'white'; isPlayerTurn = true; updateStatus(); renderBoard(); renderHands(); } }
 
 // --- AI Logic ---

@@ -62,6 +62,20 @@
             </div> <button id="start-next-game-button" class="modal-action-button">Start Next Game</button>
         </div>
     </div>
+    <div id="upgrade-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <button id="close-upgrade-modal" class="modal-close-button">X</button>
+            <h2>Pawn Upgrade</h2>
+            <p>Choose a piece to upgrade your pawn to:</p>
+            <div class="upgrade-options">
+                <button id="upgrade-to-rook" class="upgrade-button"><span class="piece">♖</span></button>
+                <button id="upgrade-to-queen" class="upgrade-button"><span class="piece">♕</span></button>
+                <button id="upgrade-to-bishop" class="upgrade-button"><span class="piece">♗</span></button>
+                <button id="upgrade-to-knight" class="upgrade-button"><span class="piece">♘</span></button>
+            </div>
+        </div>
+    </div>
+
     <div class="game-container" style="visibility: hidden;">
         <div class="main-area">
             <div class="board-container">
