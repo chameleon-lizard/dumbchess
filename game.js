@@ -193,6 +193,7 @@ function getSquaresUnderAttack(player) {
     const isWhitePlayer = player === 'white';
     const piecesToCheck = [];
 
+
     // Find pieces of the specified player
     for (let r = 0; r < boardRows; r++) {
         for (let c = 0; c < boardCols; c++) {
@@ -204,9 +205,18 @@ function getSquaresUnderAttack(player) {
     }
 
     // Check squares attacked by each piece
-    piecesToCheck.forEach(({ row, col }) => {
-        getValidMoves(row, col, boardState, cellColors).forEach(move => attackedSquares.add(`${move.to.row},${move.to.col}`));
-    });
+    for (const { row, col } of piecesToCheck) {
+        const moves = getValidMoves(row, col, boardState, cellColors);
+        for (let i = 0; i < moves.length; i++) {
+            
+            // Check if we're checking the moves of a pawn
+            if(boardState[row][col].toLowerCase() === 'p') {
+                if (moves[i].to.col === col) continue; // Skip if it's a straight move
+            }
+            
+            attackedSquares.add(`${moves[i].to.row},${moves[i].to.col}`);
+        }
+    }
     return Array.from(attackedSquares).map(square => { const [row, col] = square.split(',').map(Number); return { row, col }; });
 }
 
@@ -280,9 +290,24 @@ function makePlayerMove(fromRow, fromCol, toRow, toCol) { const pieceToMove = bo
     boardState[toRow][toCol] = pieceToMove; // Move the piece
     boardState[fromRow][fromCol] = EMPTY; // Clear the original square
     if(isKingUnderCheck('white')) {
-        showMessage('King is under check!');
+        
+      // Revert the move
+      boardState[fromRow][fromCol] = pieceToMove;
+      boardState[toRow][toCol] = captured || EMPTY;
+      showMessage('King cannot move into check!');
+      
+      selectedSquare = null;
+      validMoves = [];
+      renderBoard();
+      return; // Don't proceed further if the king is under check after the move
     }
-    selectedSquare = null; validMoves = [];
+    
+    selectedSquare = null;
+    validMoves = [];
+    if(isKingUnderCheck('white')){
+      showMessage('King is under check!');
+    }
+
     if ((pieceToMove === 'P' && toRow === 0) || (pieceToMove === 'p' && toRow === boardRows - 1)) { openUpgradeModal(toRow, toCol); } else { currentPlayer = 'black'; isPlayerTurn = false; updateStatus(); renderBoard(); renderHands(); setTimeout(makeAIMove, AI_DELAY); }
 }
 
@@ -384,6 +409,7 @@ function renderCapturedPieces() { capturedByWhiteElement.innerHTML = ''; capture
 function renderBoard() { boardElement.innerHTML = ''; boardElement.classList.remove('game-over'); boardElement.style.gridTemplateColumns = `repeat(${boardCols}, 1fr)`; boardElement.style.gridTemplateRows = `repeat(${boardRows}, 1fr)`; boardElement.style.aspectRatio = `${boardCols} / ${boardRows}`; if (gameState === 'setup-white-turn') { validPlacementSquares = getValidPlacementSquares(); } else if (gameState === 'playing' && selectedSquare && currentPlayer === 'white') { validMoves = getValidMoves(selectedSquare.row, selectedSquare.col, boardState, cellColors); } else { validPlacementSquares = []; validMoves = []; } for (let r = 0; r < boardRows; r++) { for (let c = 0; c < boardCols; c++) { const sq = document.createElement('div'); sq.classList.add('square'); sq.classList.add(cellColors[r][c]); sq.dataset.row = r; sq.dataset.col = c; const p = boardState[r][c]; if (p) { const pE = document.createElement('span'); pE.classList.add('piece'); pE.textContent = PIECES[p] || p; sq.appendChild(pE); } sq.classList.remove('selected', 'valid-move', 'valid-placement'); if (gameState === 'playing') { if (selectedSquare && selectedSquare.row === r && selectedSquare.col === c) sq.classList.add('selected'); if (validMoves.some(m => m.to.row === r && m.to.col === c)) sq.classList.add('valid-move'); } else if (gameState === 'setup-white-turn') { if (selectedHandPiece && validPlacementSquares.some(pos => pos.row === r && pos.col === c)) { sq.classList.add('valid-placement'); } } sq.addEventListener('click', handleSquareClick); boardElement.appendChild(sq); } } if (gameState === 'game-over') boardElement.classList.add('game-over'); }
 function renderScore() { scoreDisplay.textContent = `Score: ${playerScore}`; }
 
+
 // --- Shop Functions ---
 function openShop() { console.log("DEBUG: Opening shop..."); shopScoreDisplay.textContent = playerScore; shopRowsSlider.value = boardRows; shopColsSlider.value = boardCols; shopRowsOutput.textContent = boardRows; shopColsOutput.textContent = boardCols; populateShopItems(); updatePlayerInventoryDisplay(); gameContainer.style.visibility = 'hidden'; shopModal.style.display = 'flex'; }
 function populateShopItems() { shopItemsContainer.innerHTML = ''; for (const pieceType in SHOP_COSTS) { const cost = SHOP_COSTS[pieceType]; const itemDiv = document.createElement('div'); itemDiv.className = 'shop-item'; itemDiv.innerHTML = ` <div class="shop-item-piece">${PIECES[pieceType]}</div> <div class="shop-item-cost">Cost: ${cost}</div> <button class="buy-button" data-piece="${pieceType}" ${playerScore < cost ? 'disabled' : ''}>Buy</button> `; itemDiv.querySelector('.buy-button').addEventListener('click', () => buyPiece(pieceType, cost)); shopItemsContainer.appendChild(itemDiv); } }
@@ -396,6 +422,69 @@ function aiBuysPieces() { console.log("DEBUG: AI considering purchases. AI Score
 // --- Event Handlers ---
 function handleHandPieceClick(event) { console.log(`DEBUG: handleHandPieceClick fired. Target:`, event.target, ` CurrentTarget:`, event.currentTarget); console.log(`DEBUG: State check - gameState: ${gameState}, isPlayerTurn: ${isPlayerTurn}`); if (gameState !== 'setup-white-turn' || !isPlayerTurn) { console.log(`DEBUG: handleHandPieceClick ignored (State: ${gameState}, Turn: ${isPlayerTurn}).`); return; } const target = event.currentTarget; const piece = target.dataset.piece; console.log(`DEBUG: Clicked hand piece: ${piece}`); if (selectedHandPiece && selectedHandPiece.element === target) { console.log("DEBUG: Deselecting hand piece."); selectedHandPiece = null; } else { console.log("DEBUG: Selecting hand piece."); selectedHandPiece = { piece: piece, element: target }; } console.log("DEBUG: selectedHandPiece is now:", selectedHandPiece ? selectedHandPiece.piece : null); renderHands(); renderBoard(); }
 function handleSquareClick(event) { console.log(`DEBUG: handleSquareClick fired. gameState: ${gameState}, isPlayerTurn: ${isPlayerTurn}, selectedHandPiece: ${selectedHandPiece ? selectedHandPiece.piece : null}, selectedSquare: ${selectedSquare ? selectedSquare.row + ',' + selectedSquare.col : null}`); if (gameState === 'game-over' || !isPlayerTurn) { if (!isPlayerTurn && gameState === 'playing') showMessage("Wait for AI's turn..."); return; } const target = event.currentTarget; const r = parseInt(target.dataset.row); const c = parseInt(target.dataset.col); if (gameState === 'setup-white-turn') { console.log(`DEBUG: Setup click - selectedHandPiece: ${selectedHandPiece ? selectedHandPiece.piece : 'null'}`); if (!selectedHandPiece) { showMessage("Select a piece first."); return; } const isValid = validPlacementSquares.some(p => p.row === r && p.col === c); if (isValid) { console.log(`DEBUG: Placing player piece ${selectedHandPiece.piece} at (${r},${c})`); placePlayerPiece(selectedHandPiece.piece, r, c); } else { showMessage("Invalid placement square."); } return; } else if (gameState === 'playing') { const clickedP = boardState[r][c]; const isMoveTarget = validMoves.some(m => m.to.row === r && m.to.col === c); if (selectedSquare) { if (selectedSquare.row === r && selectedSquare.col === c) { console.log("DEBUG: Deselecting board piece."); selectedSquare = null; validMoves = []; renderBoard(); } else if (isMoveTarget) { console.log(`DEBUG: Making player move from (${selectedSquare.row},${selectedSquare.col}) to (${r},${c})`); makePlayerMove(selectedSquare.row, selectedSquare.col, r, c); } else { if (isCurrentPlayerPiece(clickedP)) { console.log(`DEBUG: Selecting new board piece ${clickedP} at (${r},${c})`); selectedSquare = { row: r, col: c }; validMoves = getValidMoves(r, c, boardState, cellColors); renderBoard(); } else { console.log("DEBUG: Clicked invalid square/opponent piece, deselecting."); selectedSquare = null; validMoves = []; renderBoard(); } } } else { if (isCurrentPlayerPiece(clickedP)) { console.log(`DEBUG: Selecting board piece ${clickedP} at (${r},${c})`); selectedSquare = { row: r, col: c }; validMoves = getValidMoves(r, c, boardState, cellColors); renderBoard(); } else { console.log("DEBUG: Clicked empty/opponent piece with no selection."); } } return; } }
+function handleSquareClick(event) {
+    console.log(`DEBUG: handleSquareClick fired. gameState: ${gameState}, isPlayerTurn: ${isPlayerTurn}, selectedHandPiece: ${selectedHandPiece ? selectedHandPiece.piece : null}, selectedSquare: ${selectedSquare ? selectedSquare.row + ',' + selectedSquare.col : null}`);
+    if (gameState === 'game-over' || !isPlayerTurn) {
+        if (!isPlayerTurn && gameState === 'playing') showMessage("Wait for AI's turn...");
+        return;
+    }
+    const target = event.currentTarget;
+    const r = parseInt(target.dataset.row);
+    const c = parseInt(target.dataset.col);
+    if (gameState === 'setup-white-turn') {
+        console.log(`DEBUG: Setup click - selectedHandPiece: ${selectedHandPiece ? selectedHandPiece.piece : 'null'}`);
+        if (!selectedHandPiece) { showMessage("Select a piece first."); return; }
+        const isValid = validPlacementSquares.some(p => p.row === r && p.col === c);
+        if (isValid) { console.log(`DEBUG: Placing player piece ${selectedHandPiece.piece} at (${r},${c})`); placePlayerPiece(selectedHandPiece.piece, r, c); }
+        else { showMessage("Invalid placement square."); }
+        return;
+    } else if (gameState === 'playing') {
+        const clickedP = boardState[r][c];
+        const isMoveTarget = validMoves.some(m => m.to.row === r && m.to.col === c);
+        if (selectedSquare) {
+            if (selectedSquare.row === r && selectedSquare.col === c) { console.log("DEBUG: Deselecting board piece."); selectedSquare = null; validMoves = []; renderBoard(); }
+            else {
+              // King move check
+              if (boardState[selectedSquare.row][selectedSquare.col] && boardState[selectedSquare.row][selectedSquare.col].toLowerCase() === 'k') {
+                    const opponentAttacks = getSquaresUnderAttack(currentPlayer === 'white' ? 'black' : 'white');
+                    const kingValidMoves = getValidMoves(selectedSquare.row, selectedSquare.col, boardState, cellColors).filter(move => !opponentAttacks.some(attack => attack.row === move.to.row && attack.col === move.to.col));
+                    if (kingValidMoves.some(m => m.to.row === r && m.to.col === c)) {
+                        console.log(`DEBUG: Making player move from (${selectedSquare.row},${selectedSquare.col}) to (${r},${c})`);
+                        makePlayerMove(selectedSquare.row, selectedSquare.col, r, c);
+                    }
+                    else {
+                        console.log("DEBUG: Invalid move for king, deselecting.");
+                        selectedSquare = null;
+                        validMoves = [];
+                        renderBoard();
+                    }
+                    return;
+                }
+                if (isMoveTarget) {
+                    console.log(`DEBUG: Making player move from (${selectedSquare.row},${selectedSquare.col}) to (${r},${c})`);
+                    makePlayerMove(selectedSquare.row, selectedSquare.col, r, c);
+                }
+                else {
+                    if (isCurrentPlayerPiece(clickedP)) { console.log(`DEBUG: Selecting new board piece ${clickedP} at (${r},${c})`); selectedSquare = { row: r, col: c }; validMoves = getValidMoves(r, c, boardState, cellColors); renderBoard(); }
+                    else { console.log("DEBUG: Clicked invalid square/opponent piece, deselecting."); selectedSquare = null; validMoves = []; renderBoard(); }
+                }
+            }
+        } else {
+            if (isCurrentPlayerPiece(clickedP)) {
+                console.log(`DEBUG: Selecting board piece ${clickedP} at (${r},${c})`);
+                selectedSquare = { row: r, col: c };
+                validMoves = getValidMoves(r, c, boardState, cellColors);
+                // Remove squares under attack for king
+                if (boardState[r][c].toLowerCase() === 'k') {
+                    const opponentAttacks = getSquaresUnderAttack(currentPlayer === 'white' ? 'black' : 'white');
+                    validMoves = validMoves.filter(move => !opponentAttacks.some(attack => attack.row === move.to.row && attack.col === move.to.col));
+                }
+                renderBoard();
+            } else { console.log("DEBUG: Clicked empty/opponent piece with no selection."); }
+        }
+        return;
+    }
+}
 
 // --- Initialization ---
 document.addEventListener('DOMContentLoaded', () => {
