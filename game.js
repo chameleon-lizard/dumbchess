@@ -257,6 +257,15 @@ function isKingUnderCheck(player) {
 
   return isUnderAttack;
 }
+/**
+ * Function to check if the king is in checkmate
+ * @param {string} player - The color of the player whose king to check ('white' or 'black')
+ * @returns {boolean} - True if the king is in checkmate, false otherwise
+ */
+function isKingInCheckmate(player) {
+    if (!isKingUnderCheck(player)) return false; // If not in check, it's not checkmate
+    return getAllLegalMoves(player, boardState, cellColors).length === 0;
+}
 function isWithinBoard(row, col) { return row >= 0 && row < boardRows && col >= 0 && col < boardCols; }
 function getValidPlacementSquares() { const sq = []; if (gameState !== 'setup-white-turn') return []; for (let r = boardRows - 2; r < boardRows; r++) { for (let c = 0; c < boardCols; c++) { if (boardState[r][c] === EMPTY) { sq.push({ row: r, col: c }); } } } console.log(`DEBUG: Player valid placement squares: ${sq.length}`, sq); return sq; }
 function getValidMoves(row, col, currentBoardState, currentCellColors) { const piece = currentBoardState[row][col]; if (!piece) return []; const moves = []; const pieceType = piece.toLowerCase(); const isWhite = piece === piece.toUpperCase(); const addMove = (targetRow, targetCol, isSliding = false) => { if (!isWithinBoard(targetRow, targetCol)) return false; const targetPiece = currentBoardState[targetRow][targetCol]; const targetIsDark = currentCellColors[targetRow][targetCol] === 'dark'; if (targetPiece === EMPTY) { moves.push({ from: { row, col }, to: { row: targetRow, col: targetCol }, piece: piece }); return isSliding && !targetIsDark; } else { const targetIsWhite = targetPiece === targetPiece.toUpperCase(); if (isWhite !== targetIsWhite) { moves.push({ from: { row, col }, to: { row: targetRow, col: targetCol }, piece: piece, captured: targetPiece }); } return false; } }; if (pieceType === 'p') { const dir = isWhite ? -1 : 1; const step = row + dir; if (isWithinBoard(step, col) && currentBoardState[step][col] === EMPTY) addMove(step, col, false);[col - 1, col + 1].forEach(c => { if (isWithinBoard(step, c)) { const tp = currentBoardState[step][c]; if (tp !== EMPTY && isWhite !== (tp === tp.toUpperCase())) addMove(step, c, false); } }); } if (pieceType === 'r' || pieceType === 'q') { [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => { let r = row + dr, c = col + dc; while (addMove(r, c, true)) { r += dr; c += dc; } }); } if (pieceType === 'b' || pieceType === 'q') { [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([dr, dc]) => { let r = row + dr, c = col + dc; while (addMove(r, c, true)) { r += dr; c += dc; } }); } if (pieceType === 'n') { const knightMoves = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]]; knightMoves.forEach(([dr, dc]) => { if (isWithinBoard(row + dr, col + dc)) { addMove(row + dr, col + dc, false); } }); } if (pieceType === 'k') { for (let dr = -1; dr <= 1; dr++) { for (let dc = -1; dc <= 1; dc++) { if (dr === 0 && dc === 0) continue; if (isWithinBoard(row + dr, col + dc)) { addMove(row + dr, col + dc, false); } } } } return moves; }
@@ -305,8 +314,11 @@ function makePlayerMove(fromRow, fromCol, toRow, toCol) { const pieceToMove = bo
     
     selectedSquare = null;
     validMoves = [];
-    if(isKingUnderCheck('white')){
-      showMessage('King is under check!');
+    
+    if (isKingInCheckmate('black')) {
+        showGameOver('white');
+    } else if(isKingUnderCheck('white')){
+        showMessage('King is under check!');
     }
 
     if ((pieceToMove === 'P' && toRow === 0) || (pieceToMove === 'p' && toRow === boardRows - 1)) { openUpgradeModal(toRow, toCol); } else { currentPlayer = 'black'; isPlayerTurn = false; updateStatus(); renderBoard(); renderHands(); setTimeout(makeAIMove, AI_DELAY); }
@@ -315,7 +327,11 @@ function makePlayerMove(fromRow, fromCol, toRow, toCol) { const pieceToMove = bo
 function makeAIMove() { if (gameState !== 'playing') return; console.log("AI thinking..."); const aiMove = getBestAIMove(aiSearchDepth); if (aiMove) { console.log("AI Move:", aiMove); const captured = performMove(aiMove, boardState); if (captured) { capturedByBlack.push(captured); if (captured.toLowerCase() === 'k' && countKings('white', boardState) === 0) { showGameOver('black'); return; } } 
     if(isKingUnderCheck('black')) {
         showMessage('King is under check!');
-    }writeToGameLog(`AI moved ${PIECES[aiMove.piece]} from (${aiMove.from.row},${aiMove.from.col}) to (${aiMove.to.row},${aiMove.to.col})` + (captured ? ` capturing ${PIECES[captured]}` : ''));} else { const playerMoves = getAllLegalMoves('white', boardState, cellColors); if (playerMoves.length === 0) { writeToGameLog("Stalemate! It's a draw."); playerScore += 350; aiScore += 150; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } else { writeToGameLog("AI has no moves! You win?"); playerScore += 500; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } } if (gameState !== 'game-over') { currentPlayer = 'white'; isPlayerTurn = true; updateStatus(); renderBoard(); renderHands(); } }
+    }
+    if (isKingInCheckmate('white')) {
+        showGameOver('black');
+    }
+    showMessage(`AI moved ${PIECES[aiMove.piece]} from (${aiMove.from.row},${aiMove.from.col}) to (${aiMove.to.row},${aiMove.to.col})` + (captured ? ` capturing ${PIECES[captured]}` : '')); } else { const playerMoves = getAllLegalMoves('white', boardState, cellColors); if (playerMoves.length === 0) { showMessage("Stalemate! It's a draw."); playerScore += 350; aiScore += 150; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } else { showMessage("AI has no moves! You win?"); playerScore += 500; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } } if (gameState !== 'game-over') { currentPlayer = 'white'; isPlayerTurn = true; updateStatus(); renderBoard(); renderHands(); } }
 
 // --- AI Logic ---
 function evaluateBoard(board) { let wS = 0; let bS = 0; for (let r = 0; r < boardRows; r++) { for (let c = 0; c < boardCols; c++) { const p = board[r][c]; if (p !== EMPTY) { const v = PIECE_VALUES[p.toLowerCase()] || 0; if (p === p.toUpperCase()) wS += v; else bS += v; } } } const r = (Math.random() - 0.5) * 0.1; return wS - bS + r; }
