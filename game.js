@@ -1,5 +1,6 @@
 // --- Constants and State ---
 const rulesModal = document.getElementById('rules-modal');
+const gameLogs = document.getElementById('game-logs');
 const shopModal = document.getElementById('shop-modal');
 const playButton = document.getElementById('play-button');
 const startNextGameButton = document.getElementById('start-next-game-button');
@@ -105,7 +106,7 @@ function placeOneAIPieceCalculated() {
         console.log("DEBUG: AI has no more pieces to place.");
         if (whiteHand.length === 0) { // Both done
             gameState = 'playing'; currentPlayer = 'white'; isPlayerTurn = true; updateStatus(); showMessage("Setup complete! Your turn.");
-        } else { // AI done, player not
+        } else { // AI is done, player is not
             gameState = 'setup-white-turn'; isPlayerTurn = true; updateStatus();
         }
         renderBoard(); renderHands(); return;
@@ -314,8 +315,7 @@ function makePlayerMove(fromRow, fromCol, toRow, toCol) { const pieceToMove = bo
 function makeAIMove() { if (gameState !== 'playing') return; console.log("AI thinking..."); const aiMove = getBestAIMove(aiSearchDepth); if (aiMove) { console.log("AI Move:", aiMove); const captured = performMove(aiMove, boardState); if (captured) { capturedByBlack.push(captured); if (captured.toLowerCase() === 'k' && countKings('white', boardState) === 0) { showGameOver('black'); return; } } 
     if(isKingUnderCheck('black')) {
         showMessage('King is under check!');
-    }
-    showMessage(`AI moved ${PIECES[aiMove.piece]} from (${aiMove.from.row},${aiMove.from.col}) to (${aiMove.to.row},${aiMove.to.col})` + (captured ? ` capturing ${PIECES[captured]}` : '')); } else { const playerMoves = getAllLegalMoves('white', boardState, cellColors); if (playerMoves.length === 0) { showMessage("Stalemate! It's a draw."); playerScore += 350; aiScore += 150; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } else { showMessage("AI has no moves! You win?"); playerScore += 500; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } } if (gameState !== 'game-over') { currentPlayer = 'white'; isPlayerTurn = true; updateStatus(); renderBoard(); renderHands(); } }
+    }writeToGameLog(`AI moved ${PIECES[aiMove.piece]} from (${aiMove.from.row},${aiMove.from.col}) to (${aiMove.to.row},${aiMove.to.col})` + (captured ? ` capturing ${PIECES[captured]}` : ''));} else { const playerMoves = getAllLegalMoves('white', boardState, cellColors); if (playerMoves.length === 0) { writeToGameLog("Stalemate! It's a draw."); playerScore += 350; aiScore += 150; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } else { writeToGameLog("AI has no moves! You win?"); playerScore += 500; renderScore(); gameState = 'game-over'; updateStatus(); setTimeout(openShop, 1500); return; } } if (gameState !== 'game-over') { currentPlayer = 'white'; isPlayerTurn = true; updateStatus(); renderBoard(); renderHands(); } }
 
 // --- AI Logic ---
 function evaluateBoard(board) { let wS = 0; let bS = 0; for (let r = 0; r < boardRows; r++) { for (let c = 0; c < boardCols; c++) { const p = board[r][c]; if (p !== EMPTY) { const v = PIECE_VALUES[p.toLowerCase()] || 0; if (p === p.toUpperCase()) wS += v; else bS += v; } } } const r = (Math.random() - 0.5) * 0.1; return wS - bS + r; }
@@ -398,10 +398,11 @@ function getPlayerAvailablePlacementSquares() { const squares = []; for (let r =
 /** Updates the turn indicator display */
 function updateStatus() { turnIndicator.classList.remove('white', 'black', 'setup', 'game-over'); turnIndicator.style.borderColor = ''; turnLabel.textContent = ''; switch (gameState) { case 'setup-white-turn': turnIndicator.classList.add('white'); turnIndicator.classList.add('setup'); turnLabel.textContent = "Place Your Piece"; break; case 'setup-black-turn': turnIndicator.classList.add('black'); turnIndicator.classList.add('setup'); turnLabel.textContent = "AI Placing..."; break; case 'playing': turnIndicator.classList.add(currentPlayer); turnLabel.textContent = (currentPlayer === 'white') ? "Your Turn" : "AI's Turn"; break; case 'game-over': turnIndicator.classList.add('game-over'); turnLabel.textContent = "Game Over"; break; } if (turnIndicator.classList.contains('setup')) { turnIndicator.style.borderColor = 'var(--turn-indicator-setup-border)'; } else { turnIndicator.style.borderColor = 'var(--turn-indicator-border)'; } }
 
-function showGameOver(winner) { gameState = 'game-over'; selectedSquare = null; validMoves = []; selectedHandPiece = null; validPlacementSquares = []; boardElement.classList.add('game-over'); const winnerText = (winner === 'white') ? "You win!" : "AI wins!"; if (winner === 'white') { playerScore += 500; aiScore += 0; /* AI gets 0 for losing */ } else { playerScore += 250; aiScore += 250; /* Player gets loss points, AI gets win points */ } showMessage(`Game Over! ${winnerText}`); updateStatus(); renderScore(); renderHands(); aiBuysPieces(); setTimeout(openShop, 1500); }
-function showMessage(message) { messageBox.textContent = message; messageBox.style.display = 'block'; clearTimeout(messageBox.timer); messageBox.timer = setTimeout(() => { messageBox.style.display = 'none'; }, 3000); }
+function showGameOver(winner) { gameState = 'game-over'; selectedSquare = null; validMoves = []; selectedHandPiece = null; validPlacementSquares = []; boardElement.classList.add('game-over'); const winnerText = (winner === 'white') ? "You win!" : "AI wins!"; if (winner === 'white') { playerScore += 500; aiScore += 0; /* AI gets 0 for losing */ } else { playerScore += 250; aiScore += 250; /* Player gets loss points, AI gets win points */ } writeToGameLog(`Game Over! ${winnerText}`); updateStatus(); renderScore(); renderHands(); aiBuysPieces(); setTimeout(openShop, 1500); }
 function toggleTheme() { if (currentTheme === 'day') { document.body.classList.add('dark-theme'); themeToggleButton.innerHTML = sunIcon; themeToggleButton.title = 'Switch to Day Theme'; currentTheme = 'night'; } else { document.body.classList.remove('dark-theme'); themeToggleButton.innerHTML = moonIcon; themeToggleButton.title = 'Switch to Night Theme'; currentTheme = 'day'; } }
 function randomizeCellColors() { for (let r = 0; r < boardRows; r++) { for (let c = 0; c < boardCols; c++) { cellColors[r][c] = Math.random() < 0.2 ? 'dark' : 'light'; } } }
+function writeToGameLog(message) { if (!gameLogs) { return; } gameLogs.value += message + '\n'; gameLogs.scrollTop = gameLogs.scrollHeight; }
+function showMessage(message) { writeToGameLog(message); }
 
 // --- Rendering Functions ---
 function renderHands() { whiteHandElement.innerHTML = ''; const isSetup = gameState === 'setup-white-turn'; const isPlaying = gameState === 'playing' || gameState === 'game-over'; whiteHandArea.style.display = isSetup ? 'block' : 'none'; capturedByWhiteArea.style.display = isPlaying ? 'block' : 'none'; capturedByBlackArea.style.display = isPlaying ? 'block' : 'none'; if (isSetup) { console.log("DEBUG: Rendering white hand. Pieces:", whiteHand); whiteHand.forEach((p) => { const hpe = document.createElement('span'); hpe.classList.add('hand-piece'); hpe.textContent = PIECES[p] || p; hpe.dataset.piece = p; if (selectedHandPiece && selectedHandPiece.element === hpe) { hpe.classList.add('selected-for-placement'); } /* console.log(`DEBUG: Attaching click listener to hand piece ${p}`); */ hpe.addEventListener('click', handleHandPieceClick); whiteHandElement.appendChild(hpe); }); } if (isPlaying) renderCapturedPieces(); } // Removed listener log
@@ -516,7 +517,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // *** FIX: Changed restart behavior ***
         // Hide game, show rules modal instead of confirming/initializing
         gameContainer.style.visibility = 'hidden';
-        shopModal.style.display = 'none'; // Ensure shop is hidden too
+        shopModal.style.display = 'none';// Ensure shop is hidden too
         rulesModal.style.display = 'flex';
         console.log("DEBUG: Returned to rules/setup modal.");
     });

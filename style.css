@@ -306,12 +306,63 @@ body {
     background-color: var(--sidebar-bg);
     width: 100%;
     max-width: 250px;
+    height: fit-content;
     transition: background-color 0.3s, border-color 0.3s;
+    position: relative;
 }
 
+.logs-window {
+    width: 100%;
+    min-height: 150px;
+    height: 100%;
+    overflow: hidden;
+    padding: 0;
+    margin: 0;
+}
+
+.logs-window .area-label{
+    color: #f3f4f6;
+}
+#game-logs {
+    width: 100%; /* Take full width of parent */
+    min-height: 150px; /* Minimum height */
+    height: 100%; /* Take the full height available */
+    padding: 10px; /* Add some padding */
+    border: none; /* Remove default border */
+    resize: none; /* Prevent manual resizing */
+    overflow-y: auto; /* Enable vertical scrolling */
+    box-sizing: border-box; /* Include padding and border in the element's total width and height */
+    background-color: #374151; /* Dark background */
+    color: #f3f4f6; /* Light text color */
+    border-radius: 8px; /* Rounded corners */
+    font-family: monospace; /* Monospace font */
+    font-size: 0.9rem;
+    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    background-color: #00000042;
+}
+
+#game-logs::-webkit-scrollbar {
+    width: 8px; /* Adjust scrollbar width */
+}
+
+#game-logs::-webkit-scrollbar-thumb {
+    background-color: #6b7280; /* Darker thumb color */
+    border-radius: 4px; /* Rounded thumb */
+}
+.logs-window {
+    width: 100%;
+    min-height: 150px;
+    height: 100%;
+    overflow: hidden;
+    padding: 10px;
+    margin: 0;
+    background-color: #374151;
+    border-radius: 8px;
+}
 #turn-indicator-wrapper {
     display: flex;
     align-items: center;
+    color: var(--text-color);
     justify-content: center;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
@@ -370,6 +421,12 @@ body {
         width: 200px;
         flex-shrink: 0;
         max-width: 200px;
+        position: absolute;
+        right: 0;
+        top: 0;
+        height: calc(100% - 2rem);
+        margin-right: 1rem;
+        margin-top: 1rem;
     }
 
     #turn-indicator-wrapper {
