@@ -97,10 +97,8 @@ body {
 
 .board {
     display: grid;
-    width: 100%;
-    max-width: 400px;
-    border: 2px solid var(--board-border-color);
-    border-radius: 8px;
+ border: 2px solid var(--board-border-color);
+ border-radius: 8px;
     overflow: hidden;
     background-color: var(--square-dark-bg);
 }
@@ -109,7 +107,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: clamp(20px, 12vmin, 40px);
     cursor: pointer;
     transition: background-color 0.2s;
     position: relative;
@@ -291,7 +288,6 @@ body {
 
 .board-container {
     display: flex;
-    justify-content: center;
     width: 100%;
     max-width: 400px;
 }
@@ -303,9 +299,7 @@ body {
     padding: 1rem;
     border: 1px solid var(--sidebar-border);
     border-radius: 8px;
-    background-color: var(--sidebar-bg);
-    width: 100%;
-    max-width: 250px;
+ width: 100%;
     height: fit-content;
     transition: background-color 0.3s, border-color 0.3s;
     position: relative;
@@ -405,27 +399,31 @@ body {
 @media (min-width: 768px) {
     .main-area {
         flex-direction: row;
-        align-items: flex-start;
         justify-content: center;
-        max-width: calc(400px + 200px + 1rem);
-        margin: 0 auto;
+ gap: 2rem;
+ align-items: flex-start; /* Align items to the top */
+ max-width: 800px; /* Increase max-width for larger screens */
+ margin: auto; /* Center the container */
     }
 
     .board-container {
-        flex-shrink: 0;
-        width: 400px;
-        max-width: 400px;
+ width: 450px; /* Adjust board size */
+ max-width: 450px;
+    }
+
+    .board {
+        width: 100%;
+ font-size: 40px; /* Set a fixed font size for pieces */
     }
 
     .sidebar {
-        width: 200px;
+        width: 250px; /* Increased sidebar width for larger screens */
         flex-shrink: 0;
-        max-width: 200px;
-        position: absolute;
-        right: 0;
-        top: 0;
-        height: calc(100% - 2rem);
-        margin-right: 1rem;
+ max-width: 250px;
+        position: relative; /* Position sidebar relative to the main-area flex container */
+ margin-left: 2rem; /* Add margin to the left of the sidebar */
+ right: calc(50% - 400px); /* Position sidebar to the right of the board */
+ top: 1rem;
         margin-top: 1rem;
     }
 
@@ -435,6 +433,32 @@ body {
 
     .sidebar-controls {
         justify-content: space-around;
+    }
+}
+
+/* Media query for smaller screens (adjust as needed) */
+@media (max-width: 767px) {
+    .main-area {
+        flex-direction: column; /* Stack board and sidebar vertically */
+        align-items: center; /* Center items horizontally */
+        gap: 1rem; /* Adjust gap between board and sidebar */
+    }
+
+    .board-container {
+        width: 100%; /* Board takes full width */
+        max-width: 400px; /* Keep max-width for board if desired */
+    }
+
+    .sidebar {
+        width: 100%; /* Sidebar takes full width */
+        max-width: none; /* Remove max-width constraint */
+        position: static; /* Remove absolute positioning */
+        margin-top: 1rem; /* Add space above sidebar */
+        margin-left: 0; /* Remove left margin */
+    }
+
+    .sidebar-controls {
+        justify-content: center; /* Center controls on smaller screens */
     }
 }
 
