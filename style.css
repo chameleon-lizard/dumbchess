@@ -245,8 +245,8 @@ body {
     align-items: center;
     justify-content: center;
     aspect-ratio: 1 / 1;
-    width: 60px;
-    height: 60px;
+    width: 60px; /* Fixed width */
+    height: 60px; /* Fixed height */
 }
 
 .control-button:hover {
@@ -305,61 +305,34 @@ body {
     position: relative;
 }
 
-.logs-window {
-    width: 100%;
-    min-height: 150px;
-    height: 100%;
-    overflow: hidden;
-    padding: 0;
-    margin: 0;
+.sidebar-top-row {
+    display: flex;
+    justify-content: space-between; /* Distribute items evenly */
+    align-items: center;
+    gap: 0.5rem; /* Add some gap between buttons */
+    margin-bottom: 1rem; /* Add margin below the row */
 }
 
-.logs-window .area-label{
-    color: #f3f4f6;
-}
-#game-logs {
-    width: 100%; /* Take full width of parent */
-    min-height: 150px; /* Minimum height */
-    height: 100%; /* Take the full height available */
-    padding: 10px; /* Add some padding */
-    border: none; /* Remove default border */
-    resize: none; /* Prevent manual resizing */
-    overflow-y: auto; /* Enable vertical scrolling */
-    box-sizing: border-box; /* Include padding and border in the element's total width and height */
-    background-color: #374151; /* Dark background */
-    color: #f3f4f6; /* Light text color */
-    border-radius: 8px; /* Rounded corners */
-    font-family: monospace; /* Monospace font */
-    font-size: 0.9rem;
-    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-    background-color: #00000042;
+.sidebar-top-row > * {
+    flex-grow: 1; /* Allow items to grow and fill the space */
+    flex-basis: 0; /* Distribute space evenly */
+    max-width: calc(33.333% - 0.333rem); /* Ensure equal width for 3 items with gap */
 }
 
-#game-logs::-webkit-scrollbar {
-    width: 8px; /* Adjust scrollbar width */
+/* Ensure turn indicator wrapper itself doesn't grow excessively if it's the parent */
+.sidebar-top-row #turn-indicator-wrapper {
+    flex-grow: 1; /* Allow it to take its share of space */
+    justify-content: center; /* Center its content (indicator and label) */
+    min-width: 60px; /* Minimum width to prevent squishing */
 }
 
-#game-logs::-webkit-scrollbar-thumb {
-    background-color: #6b7280; /* Darker thumb color */
-    border-radius: 4px; /* Rounded thumb */
-}
-.logs-window {
-    width: 100%;
-    min-height: 150px;
-    height: 100%;
-    overflow: hidden;
-    padding: 10px;
-    margin: 0;
-    background-color: #374151;
-    border-radius: 8px;
-}
 #turn-indicator-wrapper {
     display: flex;
     align-items: center;
     color: var(--text-color);
     justify-content: center;
     gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    /* margin-bottom: 0.5rem; Removed as sidebar-top-row handles bottom margin */
 }
 
 #turn-indicator {
@@ -393,7 +366,7 @@ body {
     justify-content: center;
     gap: 0.75rem;
     padding-top: 0;
-    margin-bottom: 1rem;
+    /* margin-bottom: 1rem; Removed as individual elements or sidebar-top-row handles spacing */
 }
 
 @media (min-width: 768px) {
@@ -427,11 +400,23 @@ body {
         margin-top: 1rem;
     }
 
+    .sidebar-top-row {
+        /* On larger screens, you might want them to stack or have specific alignments */
+        /* Adjust as needed based on the desired look */
+        gap: 0.5rem;
+    }
+
+    .sidebar-top-row > * {
+        max-width: none; /* Remove max-width constraint for larger screens if needed */
+    }
+
     #turn-indicator-wrapper {
         justify-content: flex-start;
     }
 
     .sidebar-controls {
+        /* This class might not be directly used for the top row anymore */
+        /* If it's still used elsewhere, review its purpose */
         justify-content: space-around;
     }
 }
@@ -455,6 +440,10 @@ body {
         position: static; /* Remove absolute positioning */
         margin-top: 1rem; /* Add space above sidebar */
         margin-left: 0; /* Remove left margin */
+    }
+
+    .sidebar-top-row {
+        gap: 0.5rem;
     }
 
     .sidebar-controls {
@@ -663,4 +652,12 @@ body {
     padding: 0.5rem;
     border-radius: 4px;
     min-height: 40px;
+}
+
+/* Remove styles for logs-window and game-logs as they are no longer used */
+.logs-window,
+#game-logs,
+#game-logs::-webkit-scrollbar,
+#game-logs::-webkit-scrollbar-thumb {
+    display: none;
 }

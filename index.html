@@ -82,18 +82,25 @@
                 <div id="board" class="board shadow-lg"></div>
             </div>
             <div class="sidebar">
-                <div id="turn-indicator-wrapper">
+                <div class="sidebar-top-row">
+                    <div id="turn-indicator-wrapper">
                     <div id="turn-indicator" title="Current Turn"></div> <span id="turn-label"
                         class="text-sm font-medium area-label"></span>
-                </div>
-                <div class="sidebar-controls"> <button id="theme-toggle" class="control-button" title="Toggle Theme">
-                    </button> <button id="restart-button" class="control-button" title="Restart Game"> <svg
+                    </div>
+                    <button id="theme-toggle" class="control-button" title="Toggle Theme">
+                    </button>
+                    <button id="restart-button" class="control-button" title="Restart Game"> <svg
                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
                             stroke="currentColor">
 
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg> </button> </div>
+                        </svg> </button>
+                </div>
+                <div id="white-hand-area" class="w-full" style="display: none;">
+                    <div class="text-sm font-medium area-label text-center">Your Pieces to Place:</div>
+                    <div id="white-hand" class="piece-hand"></div>
+                </div>
                 <div id="score-display">Score: 0</div>
                 <div id="captured-by-white-area" style="display: none;">
                     <div class="text-sm font-medium area-label">Captured by You:</div>
@@ -102,16 +109,6 @@
                 <div id="captured-by-black-area" style="display: none;">
                     <div class="text-sm font-medium area-label">Captured by AI:</div>
                     <div id="captured-by-black" class="captured-area"></div>
-                </div>
-                <div id="white-hand-area" class="w-full" style="display: none;">
-                    <div class="text-sm font-medium area-label text-center">Your Pieces to Place:</div>
-                    <div id="white-hand" class="piece-hand"></div>
-                </div>
-                <div id="logs-window" class="logs-window">
-                    <div class="text-sm font-medium area-label text-center">Game Logs</div>
-                    <textarea id="game-logs" class="game-logs" readonly>
-
-                    </textarea>
                 </div>
             </div>
         </div>
