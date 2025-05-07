@@ -20,7 +20,6 @@ const shopItemsContainer = document.getElementById('shop-items-buy');
 const playerInventoryDisplay = document.getElementById('player-inventory-display');
 const boardElement = document.getElementById('board');
 const turnIndicator = document.getElementById('turn-indicator');
-const turnLabel = document.getElementById('turn-label');
 const capturedByWhiteElement = document.getElementById('captured-by-white');
 const capturedByBlackElement = document.getElementById('captured-by-black');
 const capturedByWhiteArea = document.getElementById('captured-by-white-area');
@@ -413,7 +412,7 @@ function getPlayerAvailablePlacementSquares() { const squares = []; for (let r =
 
 
 /** Updates the turn indicator display */
-function updateStatus() { turnIndicator.classList.remove('white', 'black', 'setup', 'game-over'); turnIndicator.style.borderColor = ''; turnLabel.textContent = ''; switch (gameState) { case 'setup-white-turn': turnIndicator.classList.add('white'); turnIndicator.classList.add('setup'); turnLabel.textContent = "Place Your Piece"; break; case 'setup-black-turn': turnIndicator.classList.add('black'); turnIndicator.classList.add('setup'); turnLabel.textContent = "AI Placing..."; break; case 'playing': turnIndicator.classList.add(currentPlayer); turnLabel.textContent = (currentPlayer === 'white') ? "Your Turn" : "AI's Turn"; break; case 'game-over': turnIndicator.classList.add('game-over'); turnLabel.textContent = "Game Over"; break; } if (turnIndicator.classList.contains('setup')) { turnIndicator.style.borderColor = 'var(--turn-indicator-setup-border)'; } else { turnIndicator.style.borderColor = 'var(--turn-indicator-border)'; } }
+function updateStatus() { turnIndicator.classList.remove('white', 'black', 'setup', 'game-over'); turnIndicator.style.borderColor = ''; switch (gameState) { case 'setup-white-turn': turnIndicator.classList.add('white'); turnIndicator.classList.add('setup'); break; case 'setup-black-turn': turnIndicator.classList.add('black'); turnIndicator.classList.add('setup'); break; case 'playing': turnIndicator.classList.add(currentPlayer); break; case 'game-over': turnIndicator.classList.add('game-over'); break; } if (turnIndicator.classList.contains('setup')) { turnIndicator.style.borderColor = 'var(--turn-indicator-setup-border)'; } else { turnIndicator.style.borderColor = 'var(--turn-indicator-border)'; } }
 
 function showGameOver(winner) { gameState = 'game-over'; selectedSquare = null; validMoves = []; selectedHandPiece = null; validPlacementSquares = []; boardElement.classList.add('game-over'); const winnerText = (winner === 'white') ? "You win!" : "AI wins!"; if (winner === 'white') { playerScore += 500; aiScore += 0; /* AI gets 0 for losing */ } else { playerScore += 250; aiScore += 250; /* Player gets loss points, AI gets win points */ } writeToGameLog(`Game Over! ${winnerText}`); updateStatus(); renderScore(); renderHands(); aiBuysPieces(); setTimeout(openShop, 1500); }
 function toggleTheme() { if (currentTheme === 'day') { document.body.classList.add('dark-theme'); themeToggleButton.innerHTML = sunIcon; themeToggleButton.title = 'Switch to Day Theme'; currentTheme = 'night'; } else { document.body.classList.remove('dark-theme'); themeToggleButton.innerHTML = moonIcon; themeToggleButton.title = 'Switch to Night Theme'; currentTheme = 'day'; } }
